@@ -9,9 +9,7 @@ import logging
 from decorators import log
 from log.config import client_log_config
 from errors import ReqFieldMissingError, ServerError, IncorrectDataRecivedError
-from common.variables import ACTION, PRESENCE, TIME, TYPE, STATUS, USER, ACCOUNT_NAME, EXIT, \
-    RESPONSE, ERROR, DEFAULT_IP_ADDRESS, DEFAULT_PORT, MESSAGE, MESSAGE_TEXT, SENDER, \
-    TARGET
+from common.variables import *
 from common.utils import get_message, send_message
 from messenger.metaclasses import ClientMeta
 
@@ -26,7 +24,6 @@ class ClientSender(threading.Thread, metaclass=ClientMeta):
         self.sock = sock
         super().__init__()
 
-    # @log
     def create_exit_message(self):
         """Функция создаёт словарь с сообщением о выходе"""
         return {
@@ -35,7 +32,6 @@ class ClientSender(threading.Thread, metaclass=ClientMeta):
             ACCOUNT_NAME: self.account_name
         }
 
-    # @log
     def create_message(self):
         """Функция запрашивает текст сообщения и возвращает его.
         Так же завершает работу при вводе подобной комманды
@@ -57,8 +53,7 @@ class ClientSender(threading.Thread, metaclass=ClientMeta):
             CLIENT_LOGGER.critical('Потеряно соединение с сервером.')
             exit(1)
 
-    # @log
-    def user_interactive(self):
+    def run(self):
         """Функция взаимодействия с пользователем, запрашивает команды, отправляет сообщения"""
         self.print_help()
         while True:
@@ -93,34 +88,26 @@ class ClientReader(threading.Thread, metaclass=ClientMeta):
         super().__init__()
 
     # Основной цикл приёмника сообщений, принимает сообщения, выводит в консоль. Завершается при потере соединения.
-    # @log
-    def message_from_users(self):
+    def run(self):
         while True:
             try:
                 message = get_message(self.sock)
-                if ACTION in message and message[ACTION] == MESSAGE and \
-                        SENDER in message and TARGET in message \
+                if ACTION in message and message[ACTION] == MESSAGE and SENDER in message and TARGET in message \
                         and MESSAGE_TEXT in message and message[TARGET] == self.account_name:
-                    print(f'\nПолучено сообщение от пользователя {message[SENDER]}:'
-                          f'\n{message[MESSAGE_TEXT]}')
-                    CLIENT_LOGGER.info(f'Получено сообщение от пользователя {message[SENDER]}:'
-                                       f'\n{message[MESSAGE_TEXT]}')
+                    print(f'\nПолучено сообщение от пользователя {message[SENDER]}:\n{message[MESSAGE_TEXT]}')
+                    CLIENT_LOGGER.info(f'Получено сообщение от пользователя {message[SENDER]}:\n{message[MESSAGE_TEXT]}')
                 else:
                     CLIENT_LOGGER.error(f'Получено некорректное сообщение с сервера: {message}')
             except IncorrectDataRecivedError:
                 CLIENT_LOGGER.error(f'Не удалось декодировать полученное сообщение.')
-            except (OSError, ConnectionError, ConnectionAbortedError,
-                    ConnectionResetError, json.JSONDecodeError):
+            except (OSError, ConnectionError, ConnectionAbortedError, ConnectionResetError, json.JSONDecodeError):
                 CLIENT_LOGGER.critical(f'Потеряно соединение с сервером.')
                 break
 
 
+# Парсер аргументов коммандной строки
 @log
 def create_arg_parser():
-    """
-    Создаём парсер аргументов коммандной строки
-    :return:
-    """
     parser = argparse.ArgumentParser()
     parser.add_argument('addr', default=DEFAULT_IP_ADDRESS, nargs='?')
     parser.add_argument('port', default=DEFAULT_PORT, type=int, nargs='?')
@@ -134,33 +121,25 @@ def create_arg_parser():
     # проверим подходящий номер порта
     if not 1023 < server_port < 65536:
         CLIENT_LOGGER.critical(
-            f'{server_port} В качастве порта может быть указано только число в диапазоне от 1024 до 65535.')
+            f'Попытка запуска клиента с неподходящим номером порта: {server_port}. '
+            f'Допустимы адреса с 1024 до 65535. Клиент завершается.')
         exit(1)
 
     return server_ip, server_port, client_name
 
-
+# Функция генерирует запрос о присутствии клиента
 @log
 def create_presence(account_name):
-    '''
-    Функция генерирует запрос о присутствии клиента
-    :param account_name:
-    :return:
-    '''
     out = {
         ACTION: PRESENCE,
         TIME: time.time(),
-        TYPE: STATUS,
         USER: {
-            ACCOUNT_NAME: account_name,
-            STATUS: "Yep, I am here!"
+            ACCOUNT_NAME: account_name
         }
     }
     CLIENT_LOGGER.debug(f'Сформировано {PRESENCE} сообщение для пользователя {account_name}')
     return out
 
-# Функция разбирает ответ сервера на сообщение о присутствии.
-# Возвращает 200, если все ОК или генерирует исключение при ошибке.
 @log
 def process_ans(message):
     """
@@ -173,26 +152,28 @@ def process_ans(message):
         if message[RESPONSE] == 200:
             return '200 : OK'
         elif message[RESPONSE] == 400:
-            CLIENT_LOGGER.debug('Клиент не подключился к серверу')
             raise ServerError(f'400 : {message[ERROR]}')
     raise ReqFieldMissingError(RESPONSE)
 
 
+
+
+
 def main():
-    """Загружаем параметры коммандной строки"""
     # Сообщаем о запуске
     print('Консольный месседжер. Клиентский модуль.')
 
+    # Загружаем параметы коммандной строки
     server_ip, server_port, client_name = create_arg_parser()
 
     # Если имя пользователя не было задано, необходимо запросить пользователя.
     if not client_name:
         client_name = input('Введите имя пользователя: ')
-    # print('client_name: ', client_name)
+    else:
+        print(f'Клиентский модуль запущен с именем: {client_name}')
 
     CLIENT_LOGGER.info(
-        f'Запущен клиент с парамертами: адрес сервера: {server_ip}, '
-        f'порт: {server_port}, имя пользователя: {client_name}')
+        f'Запущен клиент с парамертами: адрес сервера: {server_ip} , порт: {server_port}, имя пользователя: {client_name}')
 
     # Инициализация сокета и сообщение серверу о нашем появлении
     try:
@@ -213,8 +194,7 @@ def main():
         exit(1)
     except (ConnectionRefusedError, ConnectionError):
         CLIENT_LOGGER.critical(
-            f'Не удалось подключиться к серверу {server_ip}:{server_port}, '
-            f'конечный компьютер отверг запрос на подключение.')
+            f'Не удалось подключиться к серверу {server_ip}:{server_port}, конечный компьютер отверг запрос на подключение.')
         exit(1)
     else:
         # Если соединение с сервером установлено корректно,
@@ -231,10 +211,8 @@ def main():
         sender.start()
         CLIENT_LOGGER.debug('Запущены процессы')
 
-        # Watchdog основной цикл, если один из потоков завершён,
-        # то значит или потеряно соединение или пользователь
-        # ввёл exit. Поскольку все события обработываются в потоках,
-        # достаточно просто завершить цикл.
+        # Watchdog основной цикл, если один из потоков завершён, то значит или потеряно соединение, или пользователь
+        # ввёл exit. Поскольку все события обработываются в потоках, достаточно просто завершить цикл.
         while True:
             time.sleep(1)
             if reciever.is_alive() and sender.is_alive():

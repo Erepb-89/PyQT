@@ -24,7 +24,7 @@ def create_arg_parser():
     """Парсер аргументов коммандной строки"""
     parser = argparse.ArgumentParser()
     parser.add_argument('-p', default=DEFAULT_PORT, type=int, nargs='?')
-    parser.add_argument('-a', default='', nargs='?')
+    parser.add_argument('-a', default='0.0.0.0', nargs='?')
     namespace = parser.parse_args(sys.argv[1:])
     listen_address = namespace.a
     listen_port = namespace.p
@@ -34,7 +34,7 @@ def create_arg_parser():
 
 class Server(metaclass=ServerMeta):
     port = Port()
-    # addr = Host()
+    addr = Host()
 
     def __init__(self, listen_address, listen_port):
         # Параметры подключения
@@ -54,12 +54,12 @@ class Server(metaclass=ServerMeta):
         SERVER_LOGGER.info(f'Запущен сервер, порт для подключений: {self.port}, '
                            f'адрес с которого принимаются подключения: {self.addr}')
         # Готовим сокет
-        transport = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        transport.bind((self.addr, self.port))
-        transport.settimeout(0.5)
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.bind((self.addr, self.port))
+        sock.settimeout(0.5)
 
         # Начинаем слушать сокет.
-        self.sock = transport
+        self.sock = sock
         self.sock.listen()
 
     # @log

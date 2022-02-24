@@ -29,7 +29,7 @@ class Host:
         # value (Host/listen_address) - 127.0.0.1
         try:
             ip_address(value)
-        except:
+        except Exception:
             logger.critical(
                 f'Попытка запуска сервера с указанием неподходящего хоста {value}. Допустимы адреса формата 0.0.0.0')
             exit(1)
