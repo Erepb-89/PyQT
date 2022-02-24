@@ -75,7 +75,7 @@ class ClientSender(threading.Thread, metaclass=ClientMeta):
                 time.sleep(0.5)
                 break
             else:
-                print('Команда не распознана, попробойте снова.')
+                print('Команда не распознана, попробойте снова. help - вывести поддерживаемые команды.')
 
     def print_help(self):
         """Функция выводящяя справку по использованию"""
@@ -159,7 +159,8 @@ def create_presence(account_name):
     CLIENT_LOGGER.debug(f'Сформировано {PRESENCE} сообщение для пользователя {account_name}')
     return out
 
-
+# Функция разбирает ответ сервера на сообщение о присутствии.
+# Возвращает 200, если все ОК или генерирует исключение при ошибке.
 @log
 def process_ans(message):
     """
@@ -187,7 +188,7 @@ def main():
     # Если имя пользователя не было задано, необходимо запросить пользователя.
     if not client_name:
         client_name = input('Введите имя пользователя: ')
-    print('client_name: ', client_name)
+    # print('client_name: ', client_name)
 
     CLIENT_LOGGER.info(
         f'Запущен клиент с парамертами: адрес сервера: {server_ip}, '
@@ -225,7 +226,7 @@ def main():
 
         # затем запускаем отправку сообщений и взаимодействие с пользователем.
         # sender = threading.Thread(target=user_interactive, args=(sock, client_name))
-        sender = ClientReader(client_name, sock)
+        sender = ClientSender(client_name, sock)
         sender.daemon = True
         sender.start()
         CLIENT_LOGGER.debug('Запущены процессы')
