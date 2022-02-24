@@ -54,12 +54,12 @@ class Server(metaclass=ServerMeta):
         SERVER_LOGGER.info(f'Запущен сервер, порт для подключений: {self.port}, '
                            f'адрес с которого принимаются подключения: {self.addr}')
         # Готовим сокет
-        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        sock.bind((self.addr, self.port))
-        sock.settimeout(0.5)
+        transport = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        transport.bind((self.addr, self.port))
+        transport.settimeout(0.5)
 
         # Начинаем слушать сокет.
-        self.sock = sock
+        self.sock = transport
         self.sock.listen()
 
     # @log

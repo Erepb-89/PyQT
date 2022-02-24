@@ -27,16 +27,16 @@ class ClientSender(threading.Thread, metaclass=ClientMeta):
         super().__init__()
 
     # @log
-    def create_exit_message(self, account_name):
+    def create_exit_message(self):
         """Функция создаёт словарь с сообщением о выходе"""
         return {
             ACTION: EXIT,
             TIME: time.time(),
-            ACCOUNT_NAME: account_name
+            ACCOUNT_NAME: self.account_name
         }
 
     # @log
-    def create_message(self, sock, account_name):
+    def create_message(self):
         """Функция запрашивает текст сообщения и возвращает его.
         Так же завершает работу при вводе подобной комманды
         """
@@ -44,31 +44,31 @@ class ClientSender(threading.Thread, metaclass=ClientMeta):
         message = input('Введите сообщение для отправки: ')
         message_dict = {
             ACTION: MESSAGE,
-            SENDER: account_name,
+            SENDER: self.account_name,
             TARGET: mes_target,
             TIME: time.time(),
             MESSAGE_TEXT: message
         }
         CLIENT_LOGGER.debug(f'Сформирован словарь сообщения: {message_dict}')
         try:
-            send_message(sock, message_dict)
+            send_message(self.sock, message_dict)
             CLIENT_LOGGER.debug(f'Отправлено сообщение для пользователя {mes_target}')
         except:
             CLIENT_LOGGER.critical('Потеряно соединение с сервером.')
             exit(1)
 
     # @log
-    def user_interactive(self, sock, username):
+    def user_interactive(self):
         """Функция взаимодействия с пользователем, запрашивает команды, отправляет сообщения"""
         self.print_help()
         while True:
             command = input('Введите команду: ')
             if command == 'message':
-                self.create_message(sock, username)
+                self.create_message()
             elif command == 'help':
                 self.print_help()
             elif command == 'exit':
-                send_message(sock, self.create_exit_message(username))
+                send_message(self.sock, self.create_exit_message())
                 print('Завершение соединения.')
                 CLIENT_LOGGER.info('Завершение работы по команде пользователя.')
                 # Задержка неоходима, чтобы успело уйти сообщение о выходе
@@ -132,10 +132,10 @@ def create_arg_parser():
     client_name = namespace.name
 
     # проверим подходящий номер порта
-    # if not 1023 < server_port < 65536:
-    #     CLIENT_LOGGER.critical(
-    #         f'{server_port} В качастве порта может быть указано только число в диапазоне от 1024 до 65535.')
-    #     exit(1)
+    if not 1023 < server_port < 65536:
+        CLIENT_LOGGER.critical(
+            f'{server_port} В качастве порта может быть указано только число в диапазоне от 1024 до 65535.')
+        exit(1)
 
     return server_ip, server_port, client_name
 

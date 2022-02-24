@@ -13,7 +13,7 @@ while True:
     elif ACTION == 's':
         clients_count = int(input('Введите количество тестовых клиентов для запуска: '))
         # Запускаем сервер!
-        # PROCESS.append(subprocess.Popen('python server.py', creationflags=subprocess.CREATE_NEW_CONSOLE))
+        PROCESS.append(subprocess.Popen('python server.py', creationflags=subprocess.CREATE_NEW_CONSOLE))
         # Запускаем клиентов:
         for i in range(clients_count):
             PROCESS.append(
