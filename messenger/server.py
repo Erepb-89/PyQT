@@ -6,6 +6,7 @@ import json
 import time
 import select
 import logging
+import threading
 from decorators import log
 from log.config import server_log_config
 from errors import IncorrectDataRecivedError
@@ -14,6 +15,7 @@ from common.variables import ACTION, ACCOUNT_NAME, RESPONSE, MAX_CONNECTIONS, \
 from common.utils import get_message, send_message
 from messenger.descriptors import Host, Port
 from messenger.metaclasses import ServerMeta
+from server_database import ServerStorage
 
 # Инициализация логирования сервера.
 SERVER_LOGGER = logging.getLogger('server')
@@ -32,14 +34,20 @@ def create_arg_parser():
     return listen_address, listen_port
 
 
-class Server(metaclass=ServerMeta):
+class Server(threading.Thread, metaclass=ServerMeta):
     port = Port()
     addr = Host()
 
-    def __init__(self, listen_address, listen_port):
+    def __init__(self, listen_address, listen_port, database):
+        # Конструктор предка
+        super().__init__()
+
         # Параметры подключения
         self.addr = listen_address
         self.port = listen_port
+
+        # База данных сервера
+        self.database = database
 
         # Список подключённых клиентов.
         self.clients = []
@@ -73,6 +81,9 @@ class Server(metaclass=ServerMeta):
             # Если это новый пользователь, регистрируем
             if message[USER][ACCOUNT_NAME] not in self.names.keys():
                 self.names[message[USER][ACCOUNT_NAME]] = client
+                client_ip, client_port = client.getpeername()
+                # Добавление в базу записи входа (таблица активных пользователей)
+                self.database.user_login(message[USER][ACCOUNT_NAME], client_ip, client_port)
                 send_message(client, {RESPONSE: 200})
             # Иначе отправляем ошибку и закрываем соединение
             else:
@@ -88,6 +99,8 @@ class Server(metaclass=ServerMeta):
             return
         # Если клиент вышел
         elif ACTION in message and message[ACTION] == EXIT and ACCOUNT_NAME in message:
+            # Удаление из базы (таблица активных пользователей) вышедшего пользователя
+            self.database.user_logout(message[ACCOUNT_NAME])
             self.clients.remove(self.names[message[ACCOUNT_NAME]])
             self.names[message[ACCOUNT_NAME]].close()
             del self.names[message[ACCOUNT_NAME]]
@@ -112,7 +125,7 @@ class Server(metaclass=ServerMeta):
             SERVER_LOGGER.error(
                 f'Пользователь {message[TARGET]} не зарегистрирован на сервере, отправка сообщения невозможна.')
 
-    def main_loop(self):
+    def run(self):
         # Инициализация Сокета
         self.init_socket()
 
@@ -158,13 +171,47 @@ class Server(metaclass=ServerMeta):
             self.messages.clear()
 
 
+def print_help():
+    print('Поддерживаемые комманды:')
+    print('users - список известных пользователей')
+    print('conn - список подключенных пользователей')
+    print('history - история входов пользователя')
+    print('exit - завершение работы сервера.')
+    print('help - вывод справки по поддерживаемым командам')
+
+
 def main():
     # Загрузка параметров командной строки, если нет параметров, то задаём значения по умоланию.
     listen_address, listen_port = create_arg_parser()
 
-    # Создание экземпляра класса - сервера.
-    server = Server(listen_address, listen_port)
-    server.main_loop()
+    # Инициализация базы данных
+    database = ServerStorage()
+
+    # Создание экземпляра класса - сервера и его запуск:
+    server = Server(listen_address, listen_port, database)
+    server.daemon = True
+    server.start()
+
+    # Основной цикл сервера:
+    while True:
+        command = input('Введите комманду: ')
+        if command == 'help':
+            print_help()
+        elif command == 'exit':
+            break
+        elif command == 'users':
+            for user in sorted(database.users()):
+                print(f'Пользователь {user[0]}, последний вход: {user[1]}')
+        elif command == 'conn':
+            for user in sorted(database.active_users()):
+                print(f'Пользователь {user[0]}, подключен: {user[1]}:{user[2]}, время установки соединения: {user[3]}')
+        elif command == 'history':
+            name = input(
+                'Введите имя пользователя для просмотра истории. Для вывода всей истории, просто нажмите Enter: ')
+            for user in sorted(database.login_history(name)):
+                print(f'Пользователь: {user[0]} время входа: {user[1]}. Вход с: {user[2]}:{user[3]}')
+        else:
+            print('Команда не распознана.')
 
 
 if __name__ == "__main__":
