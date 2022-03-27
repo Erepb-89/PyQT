@@ -19,7 +19,7 @@ ACTION = 'action'
 TIME = 'time'
 USER = 'user'
 ACCOUNT_NAME = 'account_name'
-SENDER = 'sender'
+SENDER = 'from'
 TARGET = 'to'
 
 # Прочие ключи, используемые в протоколе
@@ -43,7 +43,7 @@ ADD_CONTACT = 'add'
 USERS_REQUEST = 'get_users'
 
 # responses
-RESPONSE_200 = "Необязательное сообщение/уведомление"
+RESPONSE_200 = {RESPONSE: 200}
 RESPONSE_202 = {RESPONSE: 202,
                 LIST_INFO: None
                 }

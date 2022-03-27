@@ -3,7 +3,7 @@ import os
 import unittest
 
 sys.path.append(os.path.join(os.getcwd(), '..'))
-from errors import ReqFieldMissingError
+from common.errors import ReqFieldMissingError
 from client import create_presence, process_ans
 from common.variables import PRESENCE, TYPE, STATUS, USER, ACCOUNT_NAME, TIME, ACTION, RESPONSE, ERROR
 
