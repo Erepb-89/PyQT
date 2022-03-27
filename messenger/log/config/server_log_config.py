@@ -6,7 +6,7 @@ import logging.handlers
 sys.path.append('../../')
 from common.variables import LOGGING_LEVEL, FORMATTER
 
-# Создаем логгер - регистратор верхнего уроовня с именем client
+# Создаем логгер - регистратор верхнего уровня с именем client_dir
 SERVER_LOG = logging.getLogger('server')
 # Установить уровень важности
 
