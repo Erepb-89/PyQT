@@ -15,7 +15,7 @@ PATH = os.path.join(os.path.split(PATH)[0], 'logs/server.log')
 
 # Создаем обработчик, который выводит сообщения в поток stderr
 STREAM_HANDLER = logging.StreamHandler(sys.stderr)
-STREAM_HANDLER.setLevel(logging.ERROR)
+STREAM_HANDLER.setLevel(logging.INFO)
 
 # Создать обработчик, который выводит сообщения в файл
 FILE_HANDLER = logging.handlers.TimedRotatingFileHandler(PATH, encoding='utf8', interval=1, when='D')
