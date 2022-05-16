@@ -8,7 +8,7 @@ import os
 
 # GUI - Создание таблицы QModel, для отображения в окне программы.
 def gui_create_model(database):
-    list_users = database.active_users()  # список активных юзеров
+    list_users = database.active_users_list()  # список активных юзеров
     list_ = QStandardItemModel()  # Это начинка - то, что я вставляю в главную форму
     # (можно сказать, нашу разметку) QTableView
     list_.setHorizontalHeaderLabels(['Имя Клиента', 'IP Адрес', 'Порт', 'Время подключения'])
@@ -101,10 +101,8 @@ class MainWindow(QMainWindow):
         self.show()
 
 
-# Класс окна с историей пользователей
 class HistoryWindow(QDialog):
-    # QWidget в QDialog - нет развертывания и скрытия только 2 кнопки
-    # крыть и ?
+    """Класс окна с историей пользователей"""
     def __init__(self):
         super().__init__()
         self.initUI()
@@ -115,7 +113,7 @@ class HistoryWindow(QDialog):
         self.setFixedSize(600, 700)
         self.setAttribute(Qt.WA_DeleteOnClose)
 
-        # Кнапка закрытия окна
+        # Кнопка закрытия окна
         self.close_button = QPushButton('Закрыть', self)
         self.close_button.move(250, 650)
         self.close_button.clicked.connect(self.close)
@@ -128,8 +126,8 @@ class HistoryWindow(QDialog):
         self.show()
 
 
-# Класс окна настроек
 class ConfigWindow(QDialog):
+    """Класс окна настроек"""
     def __init__(self):
         super().__init__()
         self.initUI()
@@ -212,20 +210,20 @@ class ConfigWindow(QDialog):
 
 
 if __name__ == '__main__':
-    app = QApplication(sys.argv)
-    ex = MainWindow()
-    ex.statusBar().showMessage('Test Statusbar Message')
-    test_list = QStandardItemModel(ex)
-    test_list.setHorizontalHeaderLabels(['Имя Клиента', 'IP Адрес', 'Порт', 'Время подключения'])
-    test_list.appendRow([QStandardItem('1'), QStandardItem('2'), QStandardItem('3')])
-    test_list.appendRow([QStandardItem('4'), QStandardItem('5'), QStandardItem('6')])
-    ex.active_clients_table.setModel(test_list)
-    ex.active_clients_table.resizeColumnsToContents()
-    print('JKJKJK')
-    app.exec_()
-    print('END')
     # app = QApplication(sys.argv)
-    # message = QMessageBox
-    # dial = ConfigWindow()
-    #
+    # ex = MainWindow()
+    # ex.statusBar().showMessage('Test Statusbar Message')
+    # test_list = QStandardItemModel(ex)
+    # test_list.setHorizontalHeaderLabels(['Имя Клиента', 'IP Адрес', 'Порт', 'Время подключения'])
+    # test_list.appendRow([QStandardItem('1'), QStandardItem('2'), QStandardItem('3')])
+    # test_list.appendRow([QStandardItem('4'), QStandardItem('5'), QStandardItem('6')])
+    # ex.active_clients_table.setModel(test_list)
+    # ex.active_clients_table.resizeColumnsToContents()
+    # print('JKJKJK')
     # app.exec_()
+    # print('END')
+    app = QApplication(sys.argv)
+    message = QMessageBox
+    dial = ConfigWindow()
+
+    app.exec_()
