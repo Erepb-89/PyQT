@@ -2,9 +2,9 @@ import sys
 import os
 import logging
 import logging.handlers
+from common.variables import LOGGING_LEVEL, FORMATTER
 
 sys.path.append('../../')
-from common.variables import LOGGING_LEVEL, FORMATTER
 
 # Создаем логгер - регистратор верхнего уровня с именем client_dir
 SERVER_LOG = logging.getLogger('server')
@@ -18,7 +18,8 @@ STREAM_HANDLER = logging.StreamHandler(sys.stderr)
 STREAM_HANDLER.setLevel(logging.INFO)
 
 # Создать обработчик, который выводит сообщения в файл
-FILE_HANDLER = logging.handlers.TimedRotatingFileHandler(PATH, encoding='utf8', interval=1, when='D')
+FILE_HANDLER = logging.handlers.TimedRotatingFileHandler(
+    PATH, encoding='utf8', interval=1, when='D')
 
 # подключаем объект Formatter к обработчикам
 STREAM_HANDLER.setFormatter(FORMATTER)

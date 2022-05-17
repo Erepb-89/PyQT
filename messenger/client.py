@@ -1,12 +1,12 @@
 """Программа-клиент"""
 import logging
 import os
+import argparse
+import sys
 
 from Cryptodome.PublicKey import RSA
 
 import log.config.client_log_config
-import argparse
-import sys
 from PyQt5.QtWidgets import QApplication, QMessageBox
 
 from common.variables import *
@@ -44,8 +44,9 @@ def arg_parser():
     # проверим подходящий номер порта
     if not 1023 < server_port < 65536:
         CLIENT_LOGGER.critical(
-            f'Попытка запуска клиента с неподходящим номером порта: {server_port}. '
-            f'Допустимы адреса с 1024 до 65535. Клиент завершается.')
+            f'Попытка запуска клиента с неподходящим номером '
+            f'порта: {server_port}. Допустимы адреса с 1024 до 65535. '
+            f'Клиент завершается.')
         exit(1)
 
     return server_address, server_port, client_name, client_passwd
@@ -69,7 +70,8 @@ if __name__ == '__main__':
         if start_dialog.ok_pressed:
             client_name = start_dialog.client_name.text()
             client_passwd = start_dialog.client_passwd.text()
-            CLIENT_LOGGER.debug(f'Using USERNAME = {client_name}, PASSWD = {client_passwd}.')
+            CLIENT_LOGGER.debug(
+                f'Using USERNAME = {client_name}, PASSWD = {client_passwd}.')
             # del start_dialog
         else:
             exit(0)
@@ -91,7 +93,7 @@ if __name__ == '__main__':
         with open(key_file, 'rb') as key:
             keys = RSA.import_key(key.read())
 
-    #!!!keys.publickey().export_key()
+    # !!!keys.publickey().export_key()
     CLIENT_LOGGER.debug("Keys successfully loaded.")
 
     # Создаём объект базы данных

@@ -1,11 +1,11 @@
-from PyQt5.QtWidgets import QMainWindow, qApp, QMessageBox, QApplication, QListView
-from PyQt5.QtGui import QStandardItemModel, QStandardItem, QBrush, QColor
-from PyQt5.QtCore import pyqtSlot, QEvent, Qt
-from Cryptodome.Cipher import PKCS1_OAEP
-from Cryptodome.PublicKey import RSA
 import json
 import logging
 import base64
+from PyQt5.QtWidgets import QMainWindow, qApp, QMessageBox
+from PyQt5.QtGui import QStandardItemModel, QStandardItem, QBrush, QColor
+from PyQt5.QtCore import pyqtSlot, Qt
+from Cryptodome.Cipher import PKCS1_OAEP
+from Cryptodome.PublicKey import RSA
 
 from client_dir.main_window_conv import Ui_MainClientWindow
 from client_dir.add_contact import AddContactDialog
@@ -115,14 +115,16 @@ class ClientMainWindow(QMainWindow):
             item = hist_list[i]
             if item[1] == 'in':
                 mess = QStandardItem(
-                    f'Входящее от {item[3].replace(microsecond=0)}:\n {item[2]}')
+                    f'Входящее от {item[3].replace(microsecond=0)}:'
+                    f'\n {item[2]}')
                 mess.setEditable(False)
                 mess.setBackground(QBrush(QColor(255, 213, 73)))
                 mess.setTextAlignment(Qt.AlignLeft)
                 self.history_model.appendRow(mess)
             else:
                 mess = QStandardItem(
-                    f'Исходящее от {item[3].replace(microsecond=0)}:\n {item[2]}')
+                    f'Исходящее от {item[3].replace(microsecond=0)}:'
+                    f'\n {item[2]}')
                 mess.setEditable(False)
                 mess.setTextAlignment(Qt.AlignRight)
                 mess.setBackground(QBrush(QColor(55, 255, 204)))
@@ -155,7 +157,8 @@ class ClientMainWindow(QMainWindow):
         # Если ключа нет, то ошибка, что не удалось начать чат с пользователем
         if not self.current_chat_key:
             self.messages.warning(
-                self, 'Ошибка', 'Для выбранного пользователя нет ключа шифрования.')
+                self, 'Ошибка',
+                'Для выбранного пользователя нет ключа шифрования.')
             return
 
         # Ставим надпись и активируем кнопки
@@ -287,7 +290,8 @@ class ClientMainWindow(QMainWindow):
         else:
             self.database.save_message(self.current_chat, 'out', message_text)
             logger.debug(
-                f'Отправлено сообщение для {self.current_chat}: {message_text}')
+                f'Отправлено сообщение для {self.current_chat}: '
+                f'{message_text}')
             self.history_list_update()
 
     @pyqtSlot(dict)
@@ -320,11 +324,13 @@ class ClientMainWindow(QMainWindow):
         else:
             # Проверим есть ли такой пользователь у нас в контактах:
             if self.database.check_contact(sender):
-                # Если есть, спрашиваем о желании открыть с ним чат, открываем при желании
+                # Если есть, спрашиваем о желании открыть с ним чат, открываем
+                # при желании
                 if self.messages.question(
                         self,
                         'Новое сообщение',
-                        f'Получено новое сообщение от {sender}, открыть чат с ним?',
+                        f'Получено новое сообщение от {sender}, открыть '
+                        f'чат с ним?',
                         QMessageBox.Yes,
                         QMessageBox.No) == QMessageBox.Yes:
                     self.current_chat = sender
@@ -332,18 +338,22 @@ class ClientMainWindow(QMainWindow):
             else:
                 print('NO')
                 # Раз нету, спрашиваем хотим ли добавить юзера в контакты.
-                if self.messages.question(self, 'Новое сообщение',
-                                          f'Получено новое сообщение от {sender}.\n '
-                                          f'Данного пользователя нет в вашем контакт-листе.\n '
-                                          f'Добавить в контакты и открыть чат с ним?',
-                                          QMessageBox.Yes,
-                                          QMessageBox.No) == QMessageBox.Yes:
+                if self.messages.question(
+                        self,
+                        'Новое сообщение',
+                        f'Получено новое сообщение от {sender}.\n '
+                        f'Данного пользователя нет в вашем контакт-листе.\n '
+                        f'Добавить в контакты и открыть чат с ним?',
+                        QMessageBox.Yes,
+                        QMessageBox.No) == QMessageBox.Yes:
                     self.add_contact(sender)
                     self.current_chat = sender
-                    # Нужно заново сохранить сообщение, иначе оно будет потеряно,
-                    # т.к. на момент предыдущего вызова контакта не было.
+                    # Нужно заново сохранить сообщение, иначе оно
+                    # будет потеряно, т.к. на момент предыдущего вызова
+                    # контакта не было.
                     self.database.save_message(
-                        self.current_chat, 'in', decrypted_message.decode('utf8'))
+                        self.current_chat, 'in',
+                        decrypted_message.decode('utf8'))
                     self.set_active_user()
 
     @pyqtSlot()

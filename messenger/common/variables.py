@@ -48,7 +48,7 @@ PUBLIC_KEY_REQUEST = 'pubkey_need'
 # responses
 # 200
 RESPONSE_200 = {RESPONSE: 200}
-#202
+# 202
 RESPONSE_202 = {RESPONSE: 202,
                 LIST_INFO: None
                 }
@@ -72,5 +72,6 @@ RESPONSE_402 = 'This could be "wrong password" or "no account with that name"'
 RESPONSE_409 = "Someone is already connected with the given user name"
 
 # logging
-FORMATTER = logging.Formatter("%(asctime)s - %(levelname)s - %(filename)s - %(message)s")
+FORMATTER = logging.Formatter(
+    "%(asctime)s - %(levelname)s - %(filename)s - %(message)s")
 LOGGING_LEVEL = logging.DEBUG

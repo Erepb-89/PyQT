@@ -47,7 +47,8 @@ def config_load():
     config = configparser.ConfigParser()
     dir_path = os.path.dirname(os.path.realpath(__file__))
     config.read(f"{dir_path}/{'server.ini'}")
-    # Если конфиг файл загружен правильно, запускаемся, иначе конфиг по умолчанию.
+    # Если конфиг файл загружен правильно, запускаемся, иначе конфиг по
+    # умолчанию.
     if 'SETTINGS' in config:
         return config
     else:
@@ -65,7 +66,8 @@ def main():
     # Загрузка файла конфигурации сервера
     config = config_load()
 
-    # Загрузка параметров командной строки, если нет параметров, то задаём значения по умолчанию.
+    # Загрузка параметров командной строки, если нет параметров, то задаём
+    # значения по умолчанию.
     listen_address, listen_port, gui_flag = create_arg_parser(
         config['SETTINGS']['Default_port'],
         config['SETTINGS']['Listen_Address'])
@@ -104,6 +106,7 @@ def main():
 
         # По закрытию окон останавливаем обработчик сообщений
         server.running = False
+
 
 if __name__ == '__main__':
     main()

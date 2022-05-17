@@ -2,10 +2,12 @@ import sys
 import os
 import unittest
 import json
+from common.utils import get_message, send_message
+from common.variables import RESPONSE, ERROR, USER, ACCOUNT_NAME, \
+    TIME, ACTION, PRESENCE, ENCODING
 
 sys.path.append(os.path.join(os.getcwd(), '..'))
-from common.variables import RESPONSE, ERROR, USER, ACCOUNT_NAME, TIME, ACTION, PRESENCE, ENCODING
-from common.utils import get_message, send_message
+
 
 class TestSocket:
     '''
@@ -68,12 +70,17 @@ class Tests(unittest.TestCase):
         """
         # экземпляр тестового словаря, хранит собственно тестовый словарь
         test_socket = TestSocket(self.test_dict_send)
-        # вызов тестируемой функции, результаты будут сохранены в тестовом сокете
+        # вызов тестируемой функции, результаты будут сохранены в тестовом
+        # сокете
         send_message(test_socket, self.test_dict_send)
         # проверка корретности кодирования словаря.
-        # сравниваем результат довренного кодирования и результат от тестируемой функции
-        self.assertEqual(test_socket.encoded_message, test_socket.receved_message)
-        # дополнительно, проверим генерацию исключения, при не словаре на входе.
+        # сравниваем результат довренного кодирования и результат от
+        # тестируемой функции
+        self.assertEqual(
+            test_socket.encoded_message,
+            test_socket.receved_message)
+        # дополнительно, проверим генерацию исключения, при не словаре на
+        # входе.
         with self.assertRaises(Exception):
             send_message(test_socket, test_socket)
 

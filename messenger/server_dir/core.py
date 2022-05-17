@@ -74,8 +74,9 @@ class MessageProcessor(threading.Thread):
             # Проверяем на наличие ждущих клиентов
             try:
                 if self.clients:
-                    recv_data_lst, self.listen_sockets, self.error_sockets = select.select(
-                        self.clients, self.clients, [], 0)
+                    recv_data_lst, self.listen_sockets, self.error_sockets = \
+                        select.select(
+                            self.clients, self.clients, [], 0)
             except OSError as err:
                 logger.error(f'Ошибка работы с сокетами: {err.errno}')
 
@@ -84,9 +85,12 @@ class MessageProcessor(threading.Thread):
                 for client_with_message in recv_data_lst:
                     try:
                         self.process_client_message(
-                            get_message(client_with_message), client_with_message)
+                            get_message(client_with_message),
+                            client_with_message)
                     except (OSError, json.JSONDecodeError, TypeError) as err:
-                        logger.debug(f'Getting data from client exception.', exc_info=err)
+                        logger.debug(
+                            f'Getting data from client exception.',
+                            exc_info=err)
                         self.remove_client(client_with_message)
 
     def remove_client(self, client):
@@ -106,7 +110,9 @@ class MessageProcessor(threading.Thread):
     def init_socket(self):
         """Метод инициализатор сокета."""
         logger.info(
-            f'Запущен сервер, порт для подключений: {self.port} , адрес с которого принимаются подключения: {self.addr}. Если адрес не указан, принимаются соединения с любых адресов.')
+            f'Запущен сервер, порт для подключений: {self.port}, '
+            f'адрес с которого принимаются подключения: {self.addr}. '
+            f'Если адрес не указан, принимаются соединения с любых адресов.')
         # Готовим сокет
         transport = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         transport.bind((self.addr, self.port))
@@ -118,28 +124,33 @@ class MessageProcessor(threading.Thread):
 
     def process_message(self, message):
         """Метод отправки сообщения клиенту."""
-        if message[TARGET] in self.names and self.names[message[TARGET]
-        ] in self.listen_sockets:
+        if message[TARGET] in self.names \
+                and self.names[message[TARGET]] in self.listen_sockets:
             try:
                 send_message(self.names[message[TARGET]], message)
                 logger.info(
-                    f'Отправлено сообщение пользователю {message[TARGET]} от пользователя {message[SENDER]}.')
+                    f'Отправлено сообщение пользователю {message[TARGET]} '
+                    f'от пользователя {message[SENDER]}.')
             except OSError:
                 self.remove_client(message[TARGET])
-        elif message[TARGET] in self.names and self.names[message[TARGET]] not in self.listen_sockets:
+        elif message[TARGET] in self.names \
+                and self.names[message[TARGET]] not in self.listen_sockets:
             logger.error(
-                f'Связь с клиентом {message[TARGET]} была потеряна. Соединение закрыто, доставка невозможна.')
+                f'Связь с клиентом {message[TARGET]} была потеряна. '
+                f'Соединение закрыто, доставка невозможна.')
             self.remove_client(self.names[message[TARGET]])
         else:
             logger.error(
-                f'Пользователь {message[TARGET]} не зарегистрирован на сервере, отправка сообщения невозможна.')
+                f'Пользователь {message[TARGET]} не зарегистрирован '
+                f'на сервере, отправка сообщения невозможна.')
 
     @login_required
     def process_client_message(self, message, client):
         """Метод отбработчик поступающих сообщений."""
         logger.debug(f'Разбор сообщения от клиента : {message}')
         # Если это сообщение о присутствии, принимаем и отвечаем
-        if ACTION in message and message[ACTION] == PRESENCE and TIME in message and USER in message:
+        if ACTION in message and message[ACTION] == PRESENCE \
+                and TIME in message and USER in message:
             # Если сообщение о присутствии, то вызываем функцию авторизации.
             self.authorize_user(message, client)
 
@@ -166,13 +177,13 @@ class MessageProcessor(threading.Thread):
             return
 
         # Если клиент вышел
-        elif ACTION in message and message[ACTION] == EXIT and ACCOUNT_NAME in message \
-                and self.names[message[ACCOUNT_NAME]] == client:
+        elif ACTION in message and message[ACTION] == EXIT and ACCOUNT_NAME \
+                in message and self.names[message[ACCOUNT_NAME]] == client:
             self.remove_client(client)
 
         # Если это запрос контакт-листа
-        elif ACTION in message and message[ACTION] == GET_CONTACTS and USER in message and \
-                self.names[message[USER]] == client:
+        elif ACTION in message and message[ACTION] == GET_CONTACTS \
+                and USER in message and self.names[message[USER]] == client:
             response = RESPONSE_202
             response[LIST_INFO] = self.database.get_contacts(message[USER])
             try:
@@ -181,7 +192,7 @@ class MessageProcessor(threading.Thread):
                 self.remove_client(client)
 
         # Если это добавление контакта
-        elif ACTION in message and message[ACTION] == ADD_CONTACT\
+        elif ACTION in message and message[ACTION] == ADD_CONTACT \
                 and ACCOUNT_NAME in message and USER in message \
                 and self.names[message[USER]] == client:
             self.database.add_contact(message[USER], message[ACCOUNT_NAME])
@@ -226,7 +237,8 @@ class MessageProcessor(threading.Thread):
                     self.remove_client(client)
             else:
                 response = RESPONSE_400
-                response[ERROR] = 'Нет публичного ключа для данного пользователя'
+                response[ERROR] = 'Нет публичного ключа для данного ' \
+                                  'пользователя'
                 try:
                     send_message(client, response)
                 except OSError:
@@ -278,7 +290,11 @@ class MessageProcessor(threading.Thread):
             message_auth[DATA] = random_str.decode('ascii')
             # Создаём хэш пароля и связки с рандомной строкой, сохраняем
             # серверную версию ключа
-            hash = hmac.new(self.database.get_hash(message[USER][ACCOUNT_NAME]), random_str, 'MD5')
+            hash = hmac.new(
+                self.database.get_hash(
+                    message[USER][ACCOUNT_NAME]),
+                random_str,
+                'MD5')
             digest = hash.digest()
             logger.debug(f'Auth message = {message_auth}')
             try:
@@ -292,16 +308,16 @@ class MessageProcessor(threading.Thread):
             client_digest = binascii.a2b_base64(ans[DATA])
             # Если ответ клиента корректный, то сохраняем его в список
             # пользователей.
-            if RESPONSE in ans and ans[RESPONSE] == 511 and hmac.compare_digest(
-                    digest, client_digest):
+            if RESPONSE in ans and ans[RESPONSE] == 511 \
+                    and hmac.compare_digest(digest, client_digest):
                 self.names[message[USER][ACCOUNT_NAME]] = sock
                 client_ip, client_port = sock.getpeername()
                 try:
                     send_message(sock, RESPONSE_200)
                 except OSError:
                     self.remove_client(message[USER][ACCOUNT_NAME])
-                # добавляем пользователя в список активных и если у него изменился открытый ключ
-                # сохраняем новый
+                # добавляем пользователя в список активных и если
+                # у него изменился открытый ключ сохраняем новый
                 self.database.user_login(
                     message[USER][ACCOUNT_NAME],
                     client_ip,

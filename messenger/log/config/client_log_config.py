@@ -1,9 +1,9 @@
 import sys
 import os
 import logging
+from common.variables import LOGGING_LEVEL, FORMATTER
 
 sys.path.append('../../')
-from common.variables import LOGGING_LEVEL, FORMATTER
 
 # Создаем логгер - регистратор верхнего уровня с именем client
 CLIENT_LOG = logging.getLogger('client')

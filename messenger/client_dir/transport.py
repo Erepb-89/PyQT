@@ -7,12 +7,14 @@ import time
 import logging
 import json
 import threading
+from common.errors import ServerError
+from common.variables import *
+from common.utils import get_message, send_message
+from common.errors import NonDictInputError, IncorrectDataRecivedError
+
 from PyQt5.QtCore import pyqtSignal, QObject
 
 sys.path.append('../')
-from common.utils import *
-from common.variables import *
-from common.errors import ServerError
 
 # Логгер и объект блокировки для работы с сокетом.
 CLIENT_LOGGER = logging.getLogger('client')
@@ -87,7 +89,8 @@ class ClientTransport(threading.Thread, QObject):
 
         # Если соединиться не удалось - исключение
         if not connected:
-            CLIENT_LOGGER.critical('Не удалось установить соединение с сервером')
+            CLIENT_LOGGER.critical(
+                'Не удалось установить соединение с сервером')
             raise ServerError('Не удалось установить соединение с сервером')
 
         CLIENT_LOGGER.debug('Установлено соединение с сервером')
@@ -130,7 +133,10 @@ class ClientTransport(threading.Thread, QObject):
                         # Если всё нормально, то продолжаем процедуру
                         # авторизации.
                         ans_data = ans[DATA]
-                        hash = hmac.new(passwd_hash_string, ans_data.encode('utf-8'), 'MD5')
+                        hash = hmac.new(
+                            passwd_hash_string,
+                            ans_data.encode('utf-8'),
+                            'MD5')
                         digest = hash.digest()
                         my_ans = RESPONSE_511
                         my_ans[DATA] = binascii.b2a_base64(
@@ -157,20 +163,25 @@ class ClientTransport(threading.Thread, QObject):
                 self.message_205.emit()
             else:
                 CLIENT_LOGGER.error(
-                    f'Принят неизвестный код подтверждения {message[RESPONSE]}')
+                    f'Принят неизвестный код подтверждения '
+                    f'{message[RESPONSE]}')
 
-        # Если это сообщение от пользователя добавляем в базу, даём сигнал о новом сообщении
+        # Если это сообщение от пользователя добавляем в базу, даём сигнал о
+        # новом сообщении
         elif ACTION in message and message[ACTION] == MESSAGE \
                 and SENDER in message and TARGET in message \
-                and MESSAGE_TEXT in message and message[TARGET] == self.username:
+                and MESSAGE_TEXT in message \
+                and message[TARGET] == self.username:
             CLIENT_LOGGER.debug(
-                f'Получено сообщение от пользователя {message[SENDER]}:{message[MESSAGE_TEXT]}')
+                f'Получено сообщение от пользователя '
+                f'{message[SENDER]}:{message[MESSAGE_TEXT]}')
             self.new_message.emit(message)
 
     def contacts_list_update(self):
         """Метод обновляющий с сервера список контактов."""
         self.database.contacts_clear()
-        CLIENT_LOGGER.debug(f'Запрос контакт листа для пользователя {self.name}')
+        CLIENT_LOGGER.debug(
+            f'Запрос контакт листа для пользователя {self.name}')
         req = {
             ACTION: GET_CONTACTS,
             TIME: time.time(),
@@ -189,7 +200,8 @@ class ClientTransport(threading.Thread, QObject):
 
     def user_list_update(self):
         """Метод обновляющий с сервера список пользователей"""
-        CLIENT_LOGGER.debug(f'Запрос списка известных пользователей {self.username}')
+        CLIENT_LOGGER.debug(
+            f'Запрос списка известных пользователей {self.username}')
         req = {
             ACTION: USERS_REQUEST,
             TIME: time.time(),
@@ -201,7 +213,8 @@ class ClientTransport(threading.Thread, QObject):
         if RESPONSE in ans and ans[RESPONSE] == 202:
             self.database.add_users(ans[LIST_INFO])
         else:
-            CLIENT_LOGGER.error('Не удалось обновить список известных пользователей.')
+            CLIENT_LOGGER.error(
+                'Не удалось обновить список известных пользователей.')
 
     def key_request(self, user):
         """Метод запрашивающий с сервера публичный ключ пользователя."""
@@ -293,15 +306,19 @@ class ClientTransport(threading.Thread, QObject):
                     message = get_message(self.transport)
                     # Принято некорректное сообщение
                 except IncorrectDataRecivedError:
-                    CLIENT_LOGGER.error(f'Не удалось декодировать полученное сообщение.')
-                # Вышел таймаут соединения, если errno = None, иначе обрыв соединения.
+                    CLIENT_LOGGER.error(
+                        f'Не удалось декодировать полученное сообщение.')
+                # Вышел таймаут соединения, если errno = None, иначе обрыв
+                # соединения.
                 except OSError as err:
                     if err.errno:
-                        CLIENT_LOGGER.critical(f'Потеряно соединение с сервером.')
+                        CLIENT_LOGGER.critical(
+                            f'Потеряно соединение с сервером.')
                         self.running = False
                         self.connection_lost.emit()
                 # Проблемы с соединением
-                except (ConnectionError, ConnectionAbortedError, ConnectionResetError, json.JSONDecodeError, TypeError):
+                except (ConnectionError, ConnectionAbortedError,
+                        ConnectionResetError, json.JSONDecodeError, TypeError):
                     CLIENT_LOGGER.debug(f'Потеряно соединение с сервером.')
                     self.running = False
                     self.connection_lost.emit()
@@ -312,4 +329,3 @@ class ClientTransport(threading.Thread, QObject):
             if message:
                 CLIENT_LOGGER.debug(f'Принято сообщение с сервера: {message}')
                 self.process_ans(message)
-

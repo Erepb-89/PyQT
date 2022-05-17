@@ -3,8 +3,6 @@
 import sys
 import socket
 import logging
-import log.config.server_log_config
-import log.config.client_log_config
 
 sys.path.append('../')
 
@@ -32,6 +30,7 @@ def log(func):
         return res
 
     return save_logger
+
 
 def login_required(func):
     """
