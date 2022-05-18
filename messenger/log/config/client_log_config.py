@@ -1,11 +1,11 @@
 import sys
 import os
 import logging
-
-sys.path.append('../../')
 from common.variables import LOGGING_LEVEL, FORMATTER
 
-# Создаем логгер - регистратор верхнего уроовня с именем client
+sys.path.append('../../')
+
+# Создаем логгер - регистратор верхнего уровня с именем client
 CLIENT_LOG = logging.getLogger('client')
 # Установить уровень важности
 

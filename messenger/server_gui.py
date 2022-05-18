@@ -1,17 +1,18 @@
 import sys
-from PyQt5.QtWidgets import QMainWindow, QAction, qApp, QApplication, QLabel, QTableView, QDialog, QPushButton, \
-    QLineEdit, QFileDialog, QMessageBox
+import os
+from PyQt5.QtWidgets import QMainWindow, QAction, qApp, QApplication, QLabel, \
+    QTableView, QDialog, QPushButton, QLineEdit, QFileDialog, QMessageBox
 from PyQt5.QtGui import QStandardItemModel, QStandardItem
 from PyQt5.QtCore import Qt
-import os
 
 
 # GUI - Создание таблицы QModel, для отображения в окне программы.
 def gui_create_model(database):
-    list_users = database.active_users()  # список активных юзеров
-    list_ = QStandardItemModel()  # Это начинка - то, что я вставляю в главную форму
-    # (можно сказать, нашу разметку) QTableView
-    list_.setHorizontalHeaderLabels(['Имя Клиента', 'IP Адрес', 'Порт', 'Время подключения'])
+    list_users = database.active_users_list()  # список активных юзеров
+    list_ = QStandardItemModel()  # Это начинка - то, что я вставляю в главную
+    # форму (можно сказать, нашу разметку) QTableView
+    list_.setHorizontalHeaderLabels(
+        ['Имя Клиента', 'IP Адрес', 'Порт', 'Время подключения'])
     for row in list_users:
         user, ip, port, time = row
         user = QStandardItem(user)  # создаем элемент
@@ -20,7 +21,8 @@ def gui_create_model(database):
         ip.setEditable(False)
         port = QStandardItem(str(port))
         port.setEditable(False)
-        # Уберём миллисекунды из строки времени, т.к. такая точность не требуется.
+        # Уберём миллисекунды из строки времени, т.к. такая точность не
+        # требуется.
         time = QStandardItem(str(time.replace(microsecond=0)))
         time.setEditable(False)
         list_.appendRow([user, ip, port, time])  # добавляем строку
@@ -35,7 +37,8 @@ def create_stat_model(database):
     # Объект модели данных:
     hlist = QStandardItemModel()
     hlist.setHorizontalHeaderLabels(
-        ['Имя Клиента', 'Последний раз входил', 'Сообщений отправлено', 'Сообщений получено'])
+        ['Имя Клиента', 'Последний раз входил', 'Сообщений отправлено',
+         'Сообщений получено'])
     for row in hist_list:
         user, last_seen, sent, recvd = row
         user = QStandardItem(user)
@@ -83,7 +86,8 @@ class MainWindow(QMainWindow):
         self.toolbar.addAction(self.config_btn)
 
         # Настройки геометрии основного окна
-        # Поскольку работать с динамическими размерами мы не умеем, и мало времени на изучение, размер окна фиксирован.
+        # Поскольку работать с динамическими размерами мы не умеем, и мало
+        # времени на изучение, размер окна фиксирован.
         self.setFixedSize(800, 600)
         self.setWindowTitle('Messaging Server alpha release')
 
@@ -101,10 +105,9 @@ class MainWindow(QMainWindow):
         self.show()
 
 
-# Класс окна с историей пользователей
 class HistoryWindow(QDialog):
-    # QWidget в QDialog - нет развертывания и скрытия только 2 кнопки
-    # крыть и ?
+    """Класс окна с историей пользователей"""
+
     def __init__(self):
         super().__init__()
         self.initUI()
@@ -115,7 +118,7 @@ class HistoryWindow(QDialog):
         self.setFixedSize(600, 700)
         self.setAttribute(Qt.WA_DeleteOnClose)
 
-        # Кнапка закрытия окна
+        # Кнопка закрытия окна
         self.close_button = QPushButton('Закрыть', self)
         self.close_button.move(250, 650)
         self.close_button.clicked.connect(self.close)
@@ -128,8 +131,9 @@ class HistoryWindow(QDialog):
         self.show()
 
 
-# Класс окна настроек
 class ConfigWindow(QDialog):
+    """Класс окна настроек"""
+
     def __init__(self):
         super().__init__()
         self.initUI()
@@ -190,7 +194,9 @@ class ConfigWindow(QDialog):
         self.ip_label.setFixedSize(180, 15)
 
         # Метка с напоминанием о пустом поле.
-        self.ip_label_note = QLabel(' оставьте это поле пустым, чтобы\n принимать соединения с любых адресов.', self)
+        self.ip_label_note = QLabel(
+            ' оставьте это поле пустым, чтобы'
+            '\n принимать соединения с любых адресов.', self)
         self.ip_label_note.move(10, 168)
         self.ip_label_note.setFixedSize(500, 30)
 
@@ -212,20 +218,23 @@ class ConfigWindow(QDialog):
 
 
 if __name__ == '__main__':
-    app = QApplication(sys.argv)
-    ex = MainWindow()
-    ex.statusBar().showMessage('Test Statusbar Message')
-    test_list = QStandardItemModel(ex)
-    test_list.setHorizontalHeaderLabels(['Имя Клиента', 'IP Адрес', 'Порт', 'Время подключения'])
-    test_list.appendRow([QStandardItem('1'), QStandardItem('2'), QStandardItem('3')])
-    test_list.appendRow([QStandardItem('4'), QStandardItem('5'), QStandardItem('6')])
-    ex.active_clients_table.setModel(test_list)
-    ex.active_clients_table.resizeColumnsToContents()
-    print('JKJKJK')
-    app.exec_()
-    print('END')
     # app = QApplication(sys.argv)
-    # message = QMessageBox
-    # dial = ConfigWindow()
-    #
+    # ex = MainWindow()
+    # ex.statusBar().showMessage('Test Statusbar Message')
+    # test_list = QStandardItemModel(ex)
+    # test_list.setHorizontalHeaderLabels(['Имя Клиента',
+    # 'IP Адрес', 'Порт', 'Время подключения'])
+    # test_list.appendRow([QStandardItem('1'), QStandardItem('2'),
+    # QStandardItem('3')])
+    # test_list.appendRow([QStandardItem('4'), QStandardItem('5'),
+    # QStandardItem('6')])
+    # ex.active_clients_table.setModel(test_list)
+    # ex.active_clients_table.resizeColumnsToContents()
+    # print('JKJKJK')
     # app.exec_()
+    # print('END')
+    app = QApplication(sys.argv)
+    message = QMessageBox
+    dial = ConfigWindow()
+
+    app.exec_()

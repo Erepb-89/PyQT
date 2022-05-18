@@ -1,11 +1,12 @@
 import sys
 import os
 import unittest
+from common.variables import PRESENCE, STATUS, USER, ACCOUNT_NAME, \
+    TIME, ACTION, RESPONSE, ERROR
+from client import create_presence, process_ans
+from common.errors import ReqFieldMissingError
 
 sys.path.append(os.path.join(os.getcwd(), '..'))
-from errors import ReqFieldMissingError
-from client import create_presence, process_ans
-from common.variables import PRESENCE, TYPE, STATUS, USER, ACCOUNT_NAME, TIME, ACTION, RESPONSE, ERROR
 
 
 class TestClass(unittest.TestCase):
@@ -38,7 +39,9 @@ class TestClass(unittest.TestCase):
 
     def test_without_response(self):
         """тест отсутствия RESPONSE"""
-        self.assertRaises(ReqFieldMissingError, process_ans, {ERROR: 'Bad Request'})
+        self.assertRaises(
+            ReqFieldMissingError, process_ans, {
+                ERROR: 'Bad Request'})
 
 
 if __name__ == '__main__':

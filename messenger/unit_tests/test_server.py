@@ -1,10 +1,10 @@
 import sys
 import os
 import unittest
+from common.variables import RESPONSE, ERROR
+from server import handle
 
 sys.path.append(os.path.join(os.getcwd(), '..'))
-from server import handle
-from common.variables import RESPONSE, ERROR
 
 
 class TestClass(unittest.TestCase):
@@ -19,37 +19,48 @@ class TestClass(unittest.TestCase):
 
     def test_get_response_200(self):
         """тест ответа 200"""
-        test1 = handle({'action': 'presence', 'time': 1643050465.6124058, 'type': 'status',
-                        'user': {'account_name': 'Guest', 'status': 'Yep, I am here!'}})
+        test1 = handle({'action': 'presence',
+                        'time': 1643050465.6124058,
+                        'type': 'status',
+                        'user': {'account_name': 'Guest',
+                                 'status': 'Yep, I am here!'}})
         self.assertEqual(test1, {RESPONSE: 200})
 
     def test_get_response_bad_account_name(self):
         """тест ответа 400 при неверном имени пользователя"""
-        test2 = handle({'action': 'presence', 'time': 1643050465.6124058, 'type': 'status',
-                        'user': {'account_name': 'Another Name', 'status': 'Yep, I am here!'}})
+        test2 = handle({'action': 'presence',
+                        'time': 1643050465.6124058,
+                        'type': 'status',
+                        'user': {'account_name': 'Another Name',
+                                 'status': 'Yep, I am here!'}})
         self.assertEqual(test2, self.bad_response)
 
     def test_get_response_without_time(self):
         """тест ответа 400 при отсутствии метки времени"""
-        test3 = handle({'action': 'presence', 'type': 'status',
-                        'user': {'account_name': 'Guest', 'status': 'Yep, I am here!'}})
+        test3 = handle({'action': 'presence', 'type': 'status', 'user': {
+            'account_name': 'Guest', 'status': 'Yep, I am here!'}})
         self.assertEqual(test3, self.bad_response)
 
     def test_get_response_without_user(self):
         """тест ответа 400 при отсутствии пользователя"""
-        test4 = handle({'action': 'presence', 'time': 1643050465.6124058, 'type': 'status'})
+        test4 = handle(
+            {'action': 'presence',
+             'time': 1643050465.6124058, 'type': 'status'})
         self.assertEqual(test4, self.bad_response)
 
     def test_get_response_without_action(self):
         """тест ответа 400 при отсутствии действия"""
-        test5 = handle({'time': 1643050465.6124058, 'type': 'status',
-                        'user': {'account_name': 'Guest', 'status': 'Yep, I am here!'}})
+        test5 = handle({'time': 1643050465.6124058, 'type': 'status', 'user': {
+            'account_name': 'Guest', 'status': 'Yep, I am here!'}})
         self.assertEqual(test5, self.bad_response)
 
     def test_get_response_bad_action(self):
         """тест ответа 400 при неправильном действии"""
-        test6 = handle({'action': 'BAD ACTION', 'time': 1643050465.6124058, 'type': 'status',
-                        'user': {'account_name': 'Guest', 'status': 'Yep, I am here!'}})
+        test6 = handle({'action': 'BAD ACTION',
+                        'time': 1643050465.6124058,
+                        'type': 'status',
+                        'user': {'account_name': 'Guest',
+                                 'status': 'Yep, I am here!'}})
         self.assertEqual(test6, self.bad_response)
 
 
